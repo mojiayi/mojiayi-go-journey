@@ -16,6 +16,10 @@ type BaseVO struct {
 	* 请求访问时间
 	 */
 	Timestamp int64
+	/*
+	 * 请求追踪id
+	 */
+	TraceId string
 	/**
 	* 返回结果数据，根据接口业务不同，返回不同类型的结果
 	 */
@@ -46,6 +50,15 @@ func (v *BaseVO) GetTimestamp() int64 {
 
 func (v *BaseVO) SetTimestamp(timestamp int64) *BaseVO {
 	v.Timestamp = timestamp
+	return v
+}
+
+func (v *BaseVO) GetTraceId() string {
+	return v.TraceId
+}
+
+func (v *BaseVO) SetTraceId(traceId string) *BaseVO {
+	v.TraceId = traceId
 	return v
 }
 

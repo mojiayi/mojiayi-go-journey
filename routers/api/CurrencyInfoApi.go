@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"container/list"
 	"encoding/json"
+	"mojiayi-go-journey/setting"
 	"mojiayi-go-journey/utils"
 	"mojiayi-go-journey/vo"
 	"strings"
@@ -15,7 +16,9 @@ type CurrencyInfoApi struct {
 	respUtil utils.RespUtil
 }
 
-var currencyList = list.New()
+var (
+	currencyList = list.New()
+)
 
 /**
 * 新增可用的货币信息，通过request body形式传入新数据
@@ -24,6 +27,7 @@ func (c *CurrencyInfoApi) AddCurrency(ctx *gin.Context) {
 	newCurrency := vo.CurrencyInfoVO{}
 	err := ctx.BindJSON(&newCurrency)
 	if err != nil {
+		setting.MyLogger.Info("传入的新货币信息不正确,err=", err)
 		c.respUtil.IllegalArgumentErrorResp("传入的新货币信息不正确", ctx)
 		return
 	}
@@ -36,6 +40,7 @@ func (c *CurrencyInfoApi) AddCurrency(ctx *gin.Context) {
 		}
 	}
 	if isExist {
+		setting.MyLogger.Info("要添加的货币已存在,CurrencyCode=", newCurrency.CurrencyCode)
 		c.respUtil.IllegalArgumentErrorResp("要添加的货币已存在", ctx)
 		return
 	}
@@ -51,6 +56,7 @@ func (c *CurrencyInfoApi) AddCurrency(ctx *gin.Context) {
 func (c *CurrencyInfoApi) DeleteCurrency(ctx *gin.Context) {
 	currencyCode := ctx.Param("currencyCode")
 	if currencyList.Len() == 0 {
+		setting.MyLogger.Info("没有可删除的货币信息")
 		c.respUtil.IllegalArgumentErrorResp("没有可删除的货币信息", ctx)
 		return
 	}
@@ -67,6 +73,7 @@ func (c *CurrencyInfoApi) DeleteCurrency(ctx *gin.Context) {
 		jsonRsult, _ := marshalList(currencyList)
 		c.respUtil.SuccessResp(jsonRsult, ctx)
 	} else {
+		setting.MyLogger.Info("要删除的货币不存在,CurrencyCode=", currencyCode)
 		c.respUtil.IllegalArgumentErrorResp("要删除的货币不存在", ctx)
 	}
 }
@@ -78,6 +85,7 @@ func (c *CurrencyInfoApi) ModifyCurrency(ctx *gin.Context) {
 	newCurrency := vo.CurrencyInfoVO{}
 	err := ctx.BindJSON(&newCurrency)
 	if err != nil {
+		setting.MyLogger.Info("传入的新货币信息不正确,err=", err)
 		c.respUtil.IllegalArgumentErrorResp("传入的新货币信息不正确", ctx)
 		return
 	}
@@ -96,6 +104,7 @@ func (c *CurrencyInfoApi) ModifyCurrency(ctx *gin.Context) {
 		jsonRsult, _ := marshalList(currencyList)
 		c.respUtil.SuccessResp(jsonRsult, ctx)
 	} else {
+		setting.MyLogger.Info("要删除的货币不存在,CurrencyCode=", newCurrency.CurrencyCode)
 		c.respUtil.IllegalArgumentErrorResp("要修改的货币不存在", ctx)
 	}
 }
@@ -119,6 +128,7 @@ func (c *CurrencyInfoApi) QuerySpecifiedCurrency(ctx *gin.Context) {
 	if isExist {
 		c.respUtil.SuccessResp(targetCurrency, ctx)
 	} else {
+		setting.MyLogger.Info("要查询的货币不存在,CurrencyCode=", currencyCode)
 		c.respUtil.IllegalArgumentErrorResp("要查询的货币不存在", ctx)
 	}
 }

@@ -1,15 +1,22 @@
 package routers
 
 import (
+	middlewire "mojiayi-go-journey/middleware"
 	"mojiayi-go-journey/routers/api"
+	"mojiayi-go-journey/setting"
 
 	"github.com/gin-gonic/gin"
 )
 
-var currencyInfoApi api.CurrencyInfoApi
+var (
+	currencyInfoApi api.CurrencyInfoApi
+)
 
 func InitRouter(contextPath string) *gin.Engine {
 	router := gin.New()
+
+	router.Use(setting.PutTraceIdIntoLocalStorage())
+	router.Use(middlewire.RecordCostTime())
 
 	currency := router.Group(contextPath + "/currency")
 	{
