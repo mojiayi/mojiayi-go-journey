@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"strconv"
 
 	"mojiayi-go-journey/routers"
@@ -13,6 +12,7 @@ func main() {
 
 	router := routers.InitRouter(setting.WebSetting.ContextPath)
 
+	// 默认使用8080端口，配置文件中可以指定新端口
 	addr := ":8080"
 	if setting.WebSetting.Port >= 8080 {
 		addr = ":" + strconv.Itoa(setting.WebSetting.Port)
@@ -20,6 +20,6 @@ func main() {
 
 	err := router.Run(addr)
 	if err != nil {
-		fmt.Printf("启动失败,err=%v", err)
+		setting.MyLogger.Info("启动失败,err=", err)
 	}
 }

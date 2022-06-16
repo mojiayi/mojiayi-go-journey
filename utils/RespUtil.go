@@ -14,30 +14,30 @@ type RespUtil struct {
 
 func (r *RespUtil) IllegalArgumentErrorResp(msg string, context *gin.Context) {
 	var resp = *new(vo.BaseVO)
-	resp.SetCode(http.StatusBadRequest)
-	resp.SetMsg(msg)
-	resp.SetTimestamp(time.Now().UnixMilli())
-	resp.SetTraceId(setting.GetTraceId())
-	resp.SetData(make(map[string]string, 0))
+	resp.Code = http.StatusBadRequest
+	resp.Msg = msg
+	resp.Timestamp = time.Now().UnixMilli()
+	resp.TraceId = setting.GetTraceId()
+	resp.Data = make(map[string]string, 0)
 	context.JSON(http.StatusOK, resp)
 }
 
 func (r *RespUtil) ErrorResp(code int, msg string, context *gin.Context) {
 	var resp = *new(vo.BaseVO)
-	resp.SetCode(code)
-	resp.SetMsg(msg)
-	resp.SetTimestamp(time.Now().UnixMilli())
-	resp.SetTraceId(setting.GetTraceId())
-	resp.SetData(make(map[string]string, 0))
+	resp.Code = code
+	resp.Msg = msg
+	resp.Timestamp = time.Now().UnixMilli()
+	resp.TraceId = setting.GetTraceId()
+	resp.Data = make(map[string]string, 0)
 	context.JSON(http.StatusOK, resp)
 }
 
 func (r *RespUtil) SuccessResp(data interface{}, context *gin.Context) {
-	var resp = vo.BaseVO{}
-	resp.SetCode(http.StatusOK)
-	resp.SetMsg(http.StatusText(http.StatusOK))
-	resp.SetTimestamp(time.Now().UnixMilli())
-	resp.SetTraceId(setting.GetTraceId())
-	resp.SetData(data)
+	var resp = *new(vo.BaseVO)
+	resp.Code = http.StatusOK
+	resp.Msg = http.StatusText(http.StatusOK)
+	resp.Timestamp = time.Now().UnixMilli()
+	resp.TraceId = setting.GetTraceId()
+	resp.Data = data
 	context.JSON(http.StatusOK, resp)
 }

@@ -13,14 +13,21 @@ import (
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/ini.v1"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
+	"gorm.io/gorm/schema"
 )
 
-var cfg *ini.File
-var WebSetting = &WebConfig{}
-var logOutSetting = &LogOutputConfig{}
-var MyLogger = &logrus.Logger{}
-var MetadataLogger *logrus.Logger
-var localTraceId = routine.NewLocalStorage()
+var (
+	cfg            *ini.File
+	WebSetting     = &WebConfig{}
+	logOutSetting  = &LogOutputConfig{}
+	MyLogger       = &logrus.Logger{}
+	MetadataLogger *logrus.Logger
+	localTraceId   = routine.NewLocalStorage()
+	mySQLSetting   = &MySQLConfig{}
+	DB             *gorm.DB
+)
 
 func Setup() {
 	var err error
@@ -33,7 +40,11 @@ func Setup() {
 
 	mapToConfig("log", logOutSetting)
 
+	mapToConfig("mysql", mySQLSetting)
+
 	setupLogOutput()
+
+	setupMySQL()
 }
 
 func mapToConfig(section string, value interface{}) {
@@ -126,4 +137,29 @@ func GetTraceId() string {
 
 func RemoveTraceId() {
 	localTraceId.Del()
+}
+
+type MySQLConfig struct {
+	IP       string
+	Port     int
+	User     string
+	Password string
+	Database string
+}
+
+func setupMySQL() {
+	var err error
+	var dbUrl = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True&loc=Local",
+		mySQLSetting.User,
+		mySQLSetting.Password,
+		mySQLSetting.IP,
+		mySQLSetting.Port,
+		mySQLSetting.Database)
+	DB, err = gorm.Open(mysql.Open(dbUrl), &gorm.Config{
+		NamingStrategy: schema.NamingStrategy{SingularTable: true},
+	})
+
+	if err != nil {
+		fmt.Println("models setup err:", err)
+	}
 }

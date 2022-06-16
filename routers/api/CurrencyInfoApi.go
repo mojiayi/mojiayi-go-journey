@@ -1,15 +1,16 @@
 package api
 
 import (
-	"bytes"
-	"container/list"
-	"encoding/json"
+	"mojiayi-go-journey/constants"
+	"mojiayi-go-journey/param"
+	"mojiayi-go-journey/service"
 	"mojiayi-go-journey/setting"
 	"mojiayi-go-journey/utils"
 	"mojiayi-go-journey/vo"
-	"strings"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/shopspring/decimal"
 )
 
 type CurrencyInfoApi struct {
@@ -17,7 +18,8 @@ type CurrencyInfoApi struct {
 }
 
 var (
-	currencyList = list.New()
+	currencyInfoService = *new(service.CurrencyInfoService)
+	paginateUtil        = *new(utils.PaginateUtil)
 )
 
 /**
@@ -31,51 +33,39 @@ func (c *CurrencyInfoApi) AddCurrency(ctx *gin.Context) {
 		c.respUtil.IllegalArgumentErrorResp("传入的新货币信息不正确", ctx)
 		return
 	}
-	var isExist = false
-	for currency := currencyList.Front(); currency != nil; currency = currency.Next() {
-		var item = currency.Value.(*vo.CurrencyInfoVO)
-		if strings.EqualFold(newCurrency.CurrencyCode, item.CurrencyCode) {
-			isExist = true
-			break
-		}
-	}
-	if isExist {
-		setting.MyLogger.Info("要添加的货币已存在,CurrencyCode=", newCurrency.CurrencyCode)
-		c.respUtil.IllegalArgumentErrorResp("要添加的货币已存在", ctx)
+	id, err := currencyInfoService.AddCurrency(newCurrency)
+	if err != nil || id == constants.INT_ZERO {
+		setting.MyLogger.Info("插入货币信息失败,newCurrency=" + newCurrency.String())
+		c.respUtil.ErrorResp(http.StatusInternalServerError, err.Error(), ctx)
 		return
 	}
-	currencyList.PushBack(&newCurrency)
-
-	jsonRsult, _ := marshalList(currencyList)
-	c.respUtil.SuccessResp(jsonRsult, ctx)
+	c.respUtil.SuccessResp(id, ctx)
 }
 
 /**
 * 删除货币信息，通过path variable的形式传入指定的货币代号
  */
 func (c *CurrencyInfoApi) DeleteCurrency(ctx *gin.Context) {
-	currencyCode := ctx.Param("currencyCode")
-	if currencyList.Len() == 0 {
-		setting.MyLogger.Info("没有可删除的货币信息")
-		c.respUtil.IllegalArgumentErrorResp("没有可删除的货币信息", ctx)
+	currencyCode := ctx.Param("CurrencyCode")
+	nominalValueStr := ctx.Param("NominalValue")
+	if len(currencyCode) == 0 || len(nominalValueStr) == 0 {
+		c.respUtil.IllegalArgumentErrorResp("必须指定货币代号和面值", ctx)
 		return
 	}
-	var isExist = false
-	for currency := currencyList.Front(); currency != nil; currency = currency.Next() {
-		var item = currency.Value.(*vo.CurrencyInfoVO)
-		if strings.EqualFold(currencyCode, item.CurrencyCode) {
-			isExist = true
-			currencyList.Remove(currency)
-		}
+	nominalValue, err := decimal.NewFromString(nominalValueStr)
+	if err != nil {
+		c.respUtil.IllegalArgumentErrorResp("货币面值必须是数字", ctx)
+		return
 	}
 
-	if isExist {
-		jsonRsult, _ := marshalList(currencyList)
-		c.respUtil.SuccessResp(jsonRsult, ctx)
-	} else {
-		setting.MyLogger.Info("要删除的货币不存在,CurrencyCode=", currencyCode)
-		c.respUtil.IllegalArgumentErrorResp("要删除的货币不存在", ctx)
+	err = currencyInfoService.DeleteCurrency(currencyCode, nominalValue)
+
+	if err != nil {
+		setting.MyLogger.Info("删除货币" + currencyCode + "(" + nominalValue.String() + ")失败")
+		c.respUtil.ErrorResp(http.StatusInternalServerError, err.Error(), ctx)
+		return
 	}
+	c.respUtil.SuccessResp(true, ctx)
 }
 
 /**
@@ -90,46 +80,38 @@ func (c *CurrencyInfoApi) ModifyCurrency(ctx *gin.Context) {
 		return
 	}
 
-	var isExist = false
-	for currency := currencyList.Front(); currency != nil; currency = currency.Next() {
-		item := currency.Value.(*vo.CurrencyInfoVO)
-		if strings.EqualFold(newCurrency.CurrencyCode, item.CurrencyCode) {
-			isExist = true
-			item.CurrencyName = newCurrency.CurrencyName
-			item.NominalValue = newCurrency.NominalValue
-		}
-	}
+	err = currencyInfoService.ModifyCurrency(newCurrency)
 
-	if isExist {
-		jsonRsult, _ := marshalList(currencyList)
-		c.respUtil.SuccessResp(jsonRsult, ctx)
-	} else {
-		setting.MyLogger.Info("要删除的货币不存在,CurrencyCode=", newCurrency.CurrencyCode)
-		c.respUtil.IllegalArgumentErrorResp("要修改的货币不存在", ctx)
+	if err != nil {
+		setting.MyLogger.Info("修改货币" + newCurrency.CurrencyCode + "(" + newCurrency.NominalValue.String() + ")失败")
+		c.respUtil.ErrorResp(http.StatusInternalServerError, err.Error(), ctx)
+		return
 	}
+	c.respUtil.SuccessResp(true, ctx)
 }
 
 /**
 * 查询可用的货币信息，通过path variable的形式传入指定的货币代号
  */
 func (c *CurrencyInfoApi) QuerySpecifiedCurrency(ctx *gin.Context) {
-	currencyCode := ctx.Param("currencyCode")
-	var targetCurrency *vo.CurrencyInfoVO
-	var isExist = false
-	for currency := currencyList.Front(); currency != nil; currency = currency.Next() {
-		var item = currency.Value.(*vo.CurrencyInfoVO)
-		if strings.EqualFold(currencyCode, item.CurrencyCode) {
-			targetCurrency = item
-			isExist = true
-			break
-		}
+	currencyCode := ctx.Param("CurrencyCode")
+	nominalValueStr := ctx.Param("NominalValue")
+	if len(currencyCode) == 0 || len(nominalValueStr) == 0 {
+		c.respUtil.IllegalArgumentErrorResp("必须指定货币代号和面值", ctx)
+		return
 	}
+	nominalValue, err := decimal.NewFromString(nominalValueStr)
+	if err != nil {
+		c.respUtil.IllegalArgumentErrorResp("货币面值必须是数字", ctx)
+		return
+	}
+	targetCurrency, err := currencyInfoService.QuerySpecifiedCurrency(currencyCode, nominalValue)
 
-	if isExist {
-		c.respUtil.SuccessResp(targetCurrency, ctx)
-	} else {
+	if err != nil {
 		setting.MyLogger.Info("要查询的货币不存在,CurrencyCode=", currencyCode)
-		c.respUtil.IllegalArgumentErrorResp("要查询的货币不存在", ctx)
+		c.respUtil.ErrorResp(http.StatusNotFound, "货币不存在", ctx)
+	} else {
+		c.respUtil.SuccessResp(targetCurrency, ctx)
 	}
 }
 
@@ -137,44 +119,16 @@ func (c *CurrencyInfoApi) QuerySpecifiedCurrency(ctx *gin.Context) {
 * 查询可用的货币信息，通过request parameter的形式传入指定的货币代号
  */
 func (c *CurrencyInfoApi) QueryAvailableCurrency(ctx *gin.Context) {
-	currencyCode := ctx.Query("currencyCode")
-	if len(currencyCode) == 0 {
-		jsonRsult, _ := marshalList(currencyList)
-		c.respUtil.SuccessResp(jsonRsult, ctx)
-		return
-	}
-	var targetCurrencyList = list.New()
-	for currency := currencyList.Front(); currency != nil; currency = currency.Next() {
-		var item = currency.Value.(*vo.CurrencyInfoVO)
-		if strings.EqualFold(currencyCode, item.CurrencyCode) {
-			targetCurrencyList.PushBack(item)
-		}
+	var param = *new(param.QueryCurrencyParam)
+	currencyCode := ctx.Query("CurrencyCode")
+	if len(currencyCode) > 0 {
+		param.CurrencyCode = currencyCode
 	}
 
-	jsonRsult, _ := marshalList(targetCurrencyList)
-	c.respUtil.SuccessResp(jsonRsult, ctx)
-}
+	param.CurrentPage = paginateUtil.GetCurrentPage(ctx)
+	param.PageSize = paginateUtil.GetPageSize(ctx)
 
-func marshalList(list *list.List) (interface{}, error) {
-	buffer := bytes.NewBufferString("[")
+	var targetCurrencyList = currencyInfoService.QueryAvailableCurrency(param)
 
-	for item := list.Front(); item != nil; item = item.Next() {
-		marshalled, err := json.Marshal(item.Value)
-
-		if err != nil {
-			return "[]", err
-		}
-
-		buffer.WriteString(string(marshalled))
-
-		if item.Next() != nil {
-			buffer.WriteRune(',')
-		}
-	}
-
-	buffer.WriteString("]")
-
-	var jsonRsult interface{}
-	json.Unmarshal(buffer.Bytes(), &jsonRsult)
-	return jsonRsult, nil
+	c.respUtil.SuccessResp(targetCurrencyList, ctx)
 }
