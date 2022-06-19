@@ -160,6 +160,6 @@ func setupMySQL() {
 	})
 
 	if err != nil {
-		fmt.Println("models setup err:", err)
+		MyLogger.Error("models setup err:", err)
 	}
 }

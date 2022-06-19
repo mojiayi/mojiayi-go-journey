@@ -49,21 +49,18 @@ func (c *CurrencyInfoApi) DeleteCurrency(ctx *gin.Context) {
 	currencyCode := ctx.Param("CurrencyCode")
 	nominalValueStr := ctx.Param("NominalValue")
 	if len(currencyCode) == 0 || len(nominalValueStr) == 0 {
-		c.respUtil.IllegalArgumentErrorResp("必须指定货币代号和面值", ctx)
-		return
+		panic("必须指定货币代号和面值")
 	}
 	nominalValue, err := decimal.NewFromString(nominalValueStr)
 	if err != nil {
-		c.respUtil.IllegalArgumentErrorResp("货币面值必须是数字", ctx)
-		return
+		panic(err.Error())
 	}
 
 	err = currencyInfoService.DeleteCurrency(currencyCode, nominalValue)
 
 	if err != nil {
-		setting.MyLogger.Info("删除货币" + currencyCode + "(" + nominalValue.String() + ")失败")
-		c.respUtil.ErrorResp(http.StatusInternalServerError, err.Error(), ctx)
-		return
+		setting.MyLogger.Info("删除货币" + currencyCode + "(" + nominalValueStr + ")失败")
+		panic(err.Error())
 	}
 	c.respUtil.SuccessResp(true, ctx)
 }
