@@ -15,9 +15,10 @@ var (
 func InitRouter(contextPath string) *gin.Engine {
 	router := gin.New()
 
+	router.Use(middlewire.HandleError)
 	router.Use(setting.PutTraceIdIntoLocalStorage())
 	router.Use(middlewire.RecordCostTime())
-	router.Use(middlewire.HandleError)
+	router.Use(middlewire.CheckFrequency)
 
 	currency := router.Group(contextPath + "/currency")
 	{

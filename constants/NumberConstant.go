@@ -28,3 +28,12 @@ const (
 	 */
 	MaxPageSize = 200
 )
+
+type TimeConstant int64
+
+const (
+	/**
+	* 1秒钟毫秒数
+	 */
+	ONE_SECOND_IN_MILLS = 1000
+)

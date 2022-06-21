@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-basic/uuid"
 	"github.com/go-eden/routine"
+	"github.com/go-redis/redis"
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/ini.v1"
@@ -19,14 +21,17 @@ import (
 )
 
 var (
-	cfg            *ini.File
-	WebSetting     = &WebConfig{}
-	logOutSetting  = &LogOutputConfig{}
-	MyLogger       = &logrus.Logger{}
-	MetadataLogger *logrus.Logger
-	localTraceId   = routine.NewLocalStorage()
-	mySQLSetting   = &MySQLConfig{}
-	DB             *gorm.DB
+	cfg              *ini.File
+	WebSetting       = &WebConfig{}
+	logOutSetting    = &LogOutputConfig{}
+	MyLogger         = &logrus.Logger{}
+	MetadataLogger   *logrus.Logger
+	localTraceId     = routine.NewLocalStorage()
+	mySQLSetting     = &MySQLConfig{}
+	DB               *gorm.DB
+	redisConfig      = &RedisConfig{}
+	RedisClient      *redis.Client
+	RateLimitSetting = &RateLimitConfig{}
 )
 
 func Setup() {
@@ -42,9 +47,15 @@ func Setup() {
 
 	mapToConfig("mysql", mySQLSetting)
 
+	mapToConfig("redis", redisConfig)
+
+	mapToConfig("rate", RateLimitSetting)
+
 	setupLogOutput()
 
 	setupMySQL()
+
+	setupRedis()
 }
 
 func mapToConfig(section string, value interface{}) {
@@ -162,4 +173,29 @@ func setupMySQL() {
 	if err != nil {
 		MyLogger.Error("models setup err:", err)
 	}
+}
+
+type RedisConfig struct {
+	Host     string
+	Port     int
+	Database int
+}
+
+func setupRedis() {
+	RedisClient = redis.NewClient(&redis.Options{
+		Addr:     redisConfig.Host + ":" + strconv.Itoa(redisConfig.Port),
+		Password: "",
+		DB:       redisConfig.Database,
+	})
+
+	_, err := RedisClient.Ping().Result()
+
+	if err != nil {
+		panic("redis初始化失败")
+	}
+}
+
+type RateLimitConfig struct {
+	Qps      int
+	Interval int64
 }

@@ -1,4 +1,4 @@
-package middlewire
+package middleware
 
 import (
 	"mojiayi-go-journey/setting"
