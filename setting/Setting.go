@@ -32,6 +32,7 @@ var (
 	redisConfig      = &RedisConfig{}
 	RedisClient      *redis.Client
 	RateLimitSetting = &RateLimitConfig{}
+	KafkaSetting     = &KafkaConfig{}
 )
 
 func Setup() {
@@ -50,6 +51,8 @@ func Setup() {
 	mapToConfig("redis", redisConfig)
 
 	mapToConfig("rate", RateLimitSetting)
+
+	mapToConfig("kafka", KafkaSetting)
 
 	setupLogOutput()
 
@@ -198,4 +201,15 @@ func setupRedis() {
 type RateLimitConfig struct {
 	Qps      int
 	Interval int64
+}
+
+type KafkaConfig struct {
+	Topic             string
+	Broker            string
+	Partition         int
+	ReplicationFactor int
+	ConsumerGroup     string
+	SessionTimeout    int
+	PollTimeout       int
+	Version           string
 }

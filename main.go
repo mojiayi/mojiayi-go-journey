@@ -3,6 +3,7 @@ package main
 import (
 	"strconv"
 
+	"mojiayi-go-journey/message"
 	"mojiayi-go-journey/routers"
 	"mojiayi-go-journey/setting"
 )
@@ -18,8 +19,10 @@ func main() {
 		addr = ":" + strconv.Itoa(setting.WebSetting.Port)
 	}
 
+	message.Subscribe(setting.KafkaSetting.ConsumerGroup, setting.KafkaSetting.Topic)
 	err := router.Run(addr)
 	if err != nil {
 		setting.MyLogger.Info("启动失败,err=", err)
+		return
 	}
 }
