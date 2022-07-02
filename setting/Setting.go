@@ -75,9 +75,7 @@ type MyLogFormatter struct {
 }
 
 type LogOutputConfig struct {
-	Dir                string
-	MyLogPattern       string
-	MetadataLogPattern string
+	Dir string
 }
 
 func (m *MyLogFormatter) Format(entry *logrus.Entry) ([]byte, error) {
