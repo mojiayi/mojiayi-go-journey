@@ -12,6 +12,12 @@ type KafkaConsumer struct {
 }
 
 func Subscribe(groupName string, topic string) {
+	ctx, cancel := context.WithCancel(context.Background())
+
+	go executeSubscribe(groupName, topic, ctx, cancel)
+}
+
+func executeSubscribe(groupName string, topic string, ctx context.Context, cancel context.CancelFunc) {
 	version, err := sarama.ParseKafkaVersion(setting.KafkaSetting.Version)
 	if err != nil {
 		panic(err)
@@ -22,11 +28,6 @@ func Subscribe(groupName string, topic string) {
 	config.Consumer.Group.Rebalance.Strategy = sarama.BalanceStrategyRange
 	config.Consumer.Offsets.Initial = sarama.OffsetOldest
 
-	consumer := Consumer{
-		ready: make(chan bool),
-	}
-
-	ctx, _ := context.WithCancel(context.Background())
 	client, err := sarama.NewConsumerGroup([]string{setting.KafkaSetting.Broker}, groupName, config)
 	if err != nil {
 		panic(err)
@@ -34,6 +35,10 @@ func Subscribe(groupName string, topic string) {
 
 	waitGroup := &sync.WaitGroup{}
 	waitGroup.Add(1)
+
+	consumer := Consumer{
+		ready: make(chan bool),
+	}
 
 	go func() {
 		defer waitGroup.Done()
