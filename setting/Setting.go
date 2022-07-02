@@ -187,12 +187,8 @@ type RateLimitConfig struct {
 }
 
 type KafkaConfig struct {
-	Topic             string
-	Broker            string
-	Partition         int
-	ReplicationFactor int
-	ConsumerGroup     string
-	SessionTimeout    int
-	PollTimeout       int
-	Version           string
+	Topic         string
+	Broker        string
+	ConsumerGroup string
+	Version       string
 }
