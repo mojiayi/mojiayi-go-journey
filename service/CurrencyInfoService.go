@@ -117,6 +117,8 @@ func (c *CurrencyInfoService) QueryAvailableCurrency(param param.QueryCurrencyPa
 		currencyInfoList[index] = c.po2Vo(value)
 	}
 
+	setting.MyLogger.Info("返回货币信息条数,size=", len(currencyInfoList))
+
 	pageResult.List = currencyInfoList
 	return &pageResult
 }

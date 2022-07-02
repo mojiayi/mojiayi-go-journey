@@ -120,6 +120,7 @@ func (c *CurrencyInfoApi) QueryAvailableCurrency(ctx *gin.Context) {
 	currencyCode := ctx.Query("CurrencyCode")
 	if len(currencyCode) > 0 {
 		param.CurrencyCode = currencyCode
+		setting.MyLogger.Info("查询指定的货币,CurrencyCode=", currencyCode)
 	}
 
 	param.CurrentPage = paginateUtil.GetCurrentPage(ctx)

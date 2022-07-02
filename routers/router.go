@@ -15,6 +15,7 @@ func InitRouter(contextPath string) *gin.Engine {
 	router := gin.New()
 
 	router.Use(middlewire.HandleError)
+	router.Use(middlewire.EnableTraceIdHook)
 	router.Use(middlewire.RecordCostTime())
 	router.Use(middlewire.CheckFrequency)
 

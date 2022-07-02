@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"mojiayi-go-journey/constants"
 	"strconv"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis"
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"github.com/sirupsen/logrus"
@@ -87,10 +89,20 @@ func (m *MyLogFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	}
 
 	var requestMetadata = make(map[string]interface{})
+	var ctx *gin.Context
 	for k, v := range entry.Data {
+		if k == constants.Ctx {
+			ctx = v.(*gin.Context)
+			continue
+		}
 		requestMetadata[k] = v
 	}
 	str, _ := json.Marshal(requestMetadata)
+
+	traceId := requestMetadata[constants.TraceId]
+	if traceId != nil && ctx != nil {
+		ctx.Request.Header.Add(constants.TraceId, traceId.(string))
+	}
 
 	timestamp := entry.Time.Format("2006-01-02 15:04:05")
 	var newLog = fmt.Sprintf("%s|%s|%s|%s\n", timestamp, entry.Level, entry.Message, string(str))
@@ -100,9 +112,9 @@ func (m *MyLogFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 
 func setupLogOutput() {
 	// 打印请求中业务日志
-	MyLogger = initLog(logOutSetting.Dir, "access.log")
+	MyLogger = initLog(logOutSetting.Dir, "-access.log")
 	// 打印请求的元数据信息
-	MetadataLogger = initLog(logOutSetting.Dir, "metadata.log")
+	MetadataLogger = initLog(logOutSetting.Dir, "-metadata.log")
 }
 
 func initLog(path string, filename string) *logrus.Logger {

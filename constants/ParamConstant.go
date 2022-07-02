@@ -8,6 +8,10 @@ const (
 	 */
 	TraceId = "traceId"
 	/**
+	* 上下文
+	 */
+	Ctx = "ctx"
+	/**
 	* 每页条数
 	 */
 	PageSize = "PageSize"
