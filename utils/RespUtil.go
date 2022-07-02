@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"mojiayi-go-journey/setting"
 	"mojiayi-go-journey/vo"
 	"net/http"
 	"time"
@@ -17,7 +16,6 @@ func (r *RespUtil) IllegalArgumentErrorResp(msg string, context *gin.Context) {
 	resp.Code = http.StatusBadRequest
 	resp.Msg = msg
 	resp.Timestamp = time.Now().UnixMilli()
-	resp.TraceId = setting.GetTraceId()
 	resp.Data = make(map[string]string, 0)
 	context.JSON(http.StatusOK, resp)
 }
@@ -27,7 +25,6 @@ func (r *RespUtil) ErrorResp(code int, msg string, context *gin.Context) {
 	resp.Code = code
 	resp.Msg = msg
 	resp.Timestamp = time.Now().UnixMilli()
-	resp.TraceId = setting.GetTraceId()
 	resp.Data = make(map[string]string, 0)
 	context.JSON(http.StatusOK, resp)
 }
@@ -37,7 +34,6 @@ func (r *RespUtil) SuccessResp(data interface{}, context *gin.Context) {
 	resp.Code = http.StatusOK
 	resp.Msg = http.StatusText(http.StatusOK)
 	resp.Timestamp = time.Now().UnixMilli()
-	resp.TraceId = setting.GetTraceId()
 	resp.Data = data
 	context.JSON(http.StatusOK, resp)
 }

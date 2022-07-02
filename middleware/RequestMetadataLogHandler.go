@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"mojiayi-go-journey/constants"
 	"mojiayi-go-journey/setting"
 	"time"
 
@@ -16,14 +15,11 @@ func RecordCostTime() gin.HandlerFunc {
 		ctx.Next()
 
 		setting.MetadataLogger.WithFields(logrus.Fields{
-			"cost":            time.Since(startTime).Milliseconds(),
-			"ip":              ctx.ClientIP(),
-			"method":          ctx.Request.Method,
-			"uri":             ctx.Request.RequestURI,
-			constants.TraceId: setting.GetTraceId(),
-			"usage":           "metadata",
+			"cost":   time.Since(startTime).Milliseconds(),
+			"ip":     ctx.ClientIP(),
+			"method": ctx.Request.Method,
+			"uri":    ctx.Request.RequestURI,
+			"usage":  "metadata",
 		}).Info("requestMetadata")
-
-		setting.RemoveTraceId()
 	}
 }

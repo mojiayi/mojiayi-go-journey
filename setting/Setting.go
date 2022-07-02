@@ -5,12 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
-	"github.com/gin-gonic/gin"
-	"github.com/go-basic/uuid"
-	"github.com/go-eden/routine"
 	"github.com/go-redis/redis"
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"github.com/sirupsen/logrus"
@@ -21,12 +17,12 @@ import (
 )
 
 var (
-	cfg              *ini.File
-	WebSetting       = &WebConfig{}
-	logOutSetting    = &LogOutputConfig{}
-	MyLogger         = &logrus.Logger{}
-	MetadataLogger   *logrus.Logger
-	localTraceId     = routine.NewLocalStorage()
+	cfg            *ini.File
+	WebSetting     = &WebConfig{}
+	logOutSetting  = &LogOutputConfig{}
+	MyLogger       = &logrus.Logger{}
+	MetadataLogger *logrus.Logger
+
 	mySQLSetting     = &MySQLConfig{}
 	DB               *gorm.DB
 	redisConfig      = &RedisConfig{}
@@ -97,7 +93,7 @@ func (m *MyLogFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	str, _ := json.Marshal(requestMetadata)
 
 	timestamp := entry.Time.Format("2006-01-02 15:04:05")
-	var newLog = fmt.Sprintf("%s|%s|%s|%s|%s\n", timestamp, entry.Level, GetTraceId(), entry.Message, string(str))
+	var newLog = fmt.Sprintf("%s|%s|%s|%s\n", timestamp, entry.Level, entry.Message, string(str))
 	buffer.WriteString(newLog)
 	return buffer.Bytes(), nil
 }
@@ -128,29 +124,6 @@ func initLog(path string, filename string) *logrus.Logger {
 	log.Level = logrus.InfoLevel
 
 	return log
-}
-
-func PutTraceIdIntoLocalStorage() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		GetTraceId()
-
-		ctx.Next()
-	}
-}
-
-func GetTraceId() string {
-	var traceId = ""
-	if localTraceId.Get() == nil {
-		traceId = strings.ReplaceAll(uuid.New(), "-", "")
-		localTraceId.Set(traceId)
-	} else {
-		traceId = localTraceId.Get().(string)
-	}
-	return traceId
-}
-
-func RemoveTraceId() {
-	localTraceId.Del()
 }
 
 type MySQLConfig struct {

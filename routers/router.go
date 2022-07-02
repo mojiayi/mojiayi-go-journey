@@ -3,7 +3,6 @@ package routers
 import (
 	middlewire "mojiayi-go-journey/middleware"
 	"mojiayi-go-journey/routers/api"
-	"mojiayi-go-journey/setting"
 
 	"github.com/gin-gonic/gin"
 )
@@ -16,7 +15,6 @@ func InitRouter(contextPath string) *gin.Engine {
 	router := gin.New()
 
 	router.Use(middlewire.HandleError)
-	router.Use(setting.PutTraceIdIntoLocalStorage())
 	router.Use(middlewire.RecordCostTime())
 	router.Use(middlewire.CheckFrequency)
 
