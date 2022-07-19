@@ -21,11 +21,11 @@ func InitRouter(contextPath string) *gin.Engine {
 
 	currency := router.Group(contextPath + "/currency")
 	{
-		currency.POST("/", currencyInfoApi.AddCurrency)
-		currency.DELETE("/:CurrencyCode/:NominalValue", currencyInfoApi.DeleteCurrency)
-		currency.PUT("/", currencyInfoApi.ModifyCurrency)
-		currency.GET("/", currencyInfoApi.QueryAvailableCurrency)
-		currency.GET("/:CurrencyCode/:NominalValue", currencyInfoApi.QuerySpecifiedCurrency)
+		currency.POST("", currencyInfoApi.AddCurrency)
+		currency.DELETE("/:currencyCode/:nominalValue", currencyInfoApi.DeleteCurrency)
+		currency.PUT("", currencyInfoApi.ModifyCurrency)
+		currency.GET("", currencyInfoApi.QueryAvailableCurrency)
+		currency.GET("/:currencyCode/:nominalValue", currencyInfoApi.QuerySpecifiedCurrency)
 	}
 
 	return router

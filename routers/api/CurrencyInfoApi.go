@@ -46,8 +46,8 @@ func (c *CurrencyInfoApi) AddCurrency(ctx *gin.Context) {
 * 删除货币信息，通过path variable的形式传入指定的货币代号
  */
 func (c *CurrencyInfoApi) DeleteCurrency(ctx *gin.Context) {
-	currencyCode := ctx.Param("CurrencyCode")
-	nominalValueStr := ctx.Param("NominalValue")
+	currencyCode := ctx.Param("currencyCode")
+	nominalValueStr := ctx.Param("nominalValue")
 	if len(currencyCode) == 0 || len(nominalValueStr) == 0 {
 		panic("必须指定货币代号和面值")
 	}
@@ -91,8 +91,8 @@ func (c *CurrencyInfoApi) ModifyCurrency(ctx *gin.Context) {
 * 查询可用的货币信息，通过path variable的形式传入指定的货币代号
  */
 func (c *CurrencyInfoApi) QuerySpecifiedCurrency(ctx *gin.Context) {
-	currencyCode := ctx.Param("CurrencyCode")
-	nominalValueStr := ctx.Param("NominalValue")
+	currencyCode := ctx.Param("currencyCode")
+	nominalValueStr := ctx.Param("nominalValue")
 	if len(currencyCode) == 0 || len(nominalValueStr) == 0 {
 		c.respUtil.IllegalArgumentErrorResp("必须指定货币代号和面值", ctx)
 		return
@@ -117,7 +117,7 @@ func (c *CurrencyInfoApi) QuerySpecifiedCurrency(ctx *gin.Context) {
  */
 func (c *CurrencyInfoApi) QueryAvailableCurrency(ctx *gin.Context) {
 	var param = *new(param.QueryCurrencyParam)
-	currencyCode := ctx.Query("CurrencyCode")
+	currencyCode := ctx.Query("currencyCode")
 	if len(currencyCode) > 0 {
 		param.CurrencyCode = currencyCode
 		setting.MyLogger.Info("查询指定的货币,CurrencyCode=", currencyCode)

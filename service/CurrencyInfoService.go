@@ -102,24 +102,25 @@ func (c *CurrencyInfoService) QueryAvailableCurrency(param param.QueryCurrencyPa
 	pageResult.Total = total
 	if total == 0 {
 		pageResult.Pages = 0
-		pageResult.List = make(map[string]interface{}, 0)
+		pageResult.List = []vo.CurrencyInfoVO{}
 		return &pageResult
 	}
-	list, err := currencyInfoMapper.PageByCondition(&pageResult, currencyCode)
+	recordList, err := currencyInfoMapper.PageByCondition(&pageResult, currencyCode)
 	if err != nil {
 		pageResult.Pages = 0
-		pageResult.List = make(map[string]interface{}, 0)
+		pageResult.List = []vo.CurrencyInfoVO{}
 		return &pageResult
 	}
 
-	currencyInfoList := make(map[int]interface{}, len(list))
-	for index, value := range list {
-		currencyInfoList[index] = c.po2Vo(value)
+	var currencyInfoList = make([]vo.CurrencyInfoVO, len(recordList))
+
+	for index, value := range recordList {
+		currencyInfoList[index] = *c.po2Vo(value)
 	}
 
 	setting.MyLogger.Info("返回货币信息条数,size=", len(currencyInfoList))
 
-	pageResult.List = currencyInfoList
+	(&pageResult).List = currencyInfoList
 	return &pageResult
 }
 

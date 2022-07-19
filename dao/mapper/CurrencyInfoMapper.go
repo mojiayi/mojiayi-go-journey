@@ -31,7 +31,7 @@ func (c *CurrencyInfoMapper) Insert(currencyInfo domain.CurrencyInfo) (int, erro
 func (c *CurrencyInfoMapper) DeleteCurrency(id int) int {
 	wrapper := make(map[string]interface{})
 	wrapper["id"] = id
-	setting.DB.Model(&domain.CurrencyInfo{}).Delete(wrapper)
+	setting.DB.Model(&domain.CurrencyInfo{}).Delete(nil, wrapper)
 	return constants.INT_ONE
 }
 

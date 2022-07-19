@@ -8,8 +8,8 @@ import (
 * 公共字段
  */
 type BaseModel struct {
-	ID         int `gorm:"primary_key"`
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
-	DeleteFlag uint8
+	ID         int       `json:"id" gorm:"primary_key"`
+	CreatedAt  time.Time `json:"createdAt"`
+	UpdatedAt  time.Time `json:"updatedAt"`
+	DeleteFlag uint8     `json:"deleteFlag"`
 }

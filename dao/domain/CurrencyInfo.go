@@ -13,11 +13,11 @@ import (
 type CurrencyInfo struct {
 	BaseModel
 
-	CurrencyCode string          `json:"currency_code"`
-	CurrencyType int             `json:"currency_type"`
-	CurrencyName string          `json:"currency_name"`
-	NominalValue decimal.Decimal `json:"nominal_value"`
-	WeightInGram decimal.Decimal `json:"weight_in_gram"`
+	CurrencyCode string          `json:"currencyCode"`
+	CurrencyType int             `json:"currencyType"`
+	CurrencyName string          `json:"currencyName"`
+	NominalValue decimal.Decimal `json:"nominalValue"`
+	WeightInGram decimal.Decimal `json:"weightInGram"`
 }
 
 func (c *CurrencyInfo) String() string {
