@@ -102,13 +102,13 @@ func (c *CurrencyInfoService) QueryAvailableCurrency(param param.QueryCurrencyPa
 	pageResult.Total = total
 	if total == 0 {
 		pageResult.Pages = 0
-		pageResult.List = []vo.CurrencyInfoVO{}
+		(&pageResult).List = []vo.CurrencyInfoVO{}
 		return &pageResult
 	}
 	recordList, err := currencyInfoMapper.PageByCondition(&pageResult, currencyCode)
 	if err != nil {
 		pageResult.Pages = 0
-		pageResult.List = []vo.CurrencyInfoVO{}
+		(&pageResult).List = []vo.CurrencyInfoVO{}
 		return &pageResult
 	}
 
