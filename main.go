@@ -3,10 +3,13 @@ package main
 import (
 	"strconv"
 
+	"mojiayi-go-journey/crawler"
 	"mojiayi-go-journey/message"
 	"mojiayi-go-journey/routers"
 	"mojiayi-go-journey/setting"
 )
+
+var forexCrawler = *new(crawler.ForexExchangeCrawler)
 
 func main() {
 	setting.Setup()
@@ -20,6 +23,9 @@ func main() {
 	}
 
 	message.Subscribe(setting.KafkaSetting.ConsumerGroup, setting.KafkaSetting.Topic)
+
+	forexCrawler.GetLatestExchangePrice()
+
 	err := router.Run(addr)
 	if err != nil {
 		setting.MyLogger.Info("启动失败,err=", err)
