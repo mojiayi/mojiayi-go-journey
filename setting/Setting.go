@@ -2,7 +2,6 @@ package setting
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"mojiayi-go-journey/constants"
 	"strconv"
@@ -86,24 +85,24 @@ func (m *MyLogFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 		buffer = &bytes.Buffer{}
 	}
 
-	var requestMetadata = make(map[string]interface{})
 	var ctx *gin.Context
+	var traceId = ""
 	for k, v := range entry.Data {
 		if k == constants.Ctx {
 			ctx = v.(*gin.Context)
 			continue
 		}
-		requestMetadata[k] = v
+		if k == "traceId" {
+			traceId = v.(string)
+		}
 	}
-	str, _ := json.Marshal(requestMetadata)
 
-	traceId := requestMetadata[constants.TraceId]
-	if traceId != nil && ctx != nil {
-		ctx.Request.Header.Add(constants.TraceId, traceId.(string))
+	if ctx != nil {
+		ctx.Request.Header.Add(constants.TraceId, traceId)
 	}
 
 	timestamp := entry.Time.Format("2006-01-02 15:04:05")
-	var newLog = fmt.Sprintf("%s|%s|%s|%s\n", timestamp, entry.Level, entry.Message, string(str))
+	var newLog = fmt.Sprintf("%s|%s|%s|%s\n", timestamp, entry.Level, traceId, entry.Message)
 	buffer.WriteString(newLog)
 	return buffer.Bytes(), nil
 }
