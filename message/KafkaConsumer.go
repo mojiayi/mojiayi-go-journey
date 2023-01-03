@@ -12,6 +12,7 @@ type KafkaConsumer struct {
 }
 
 func Subscribe(groupName string, topic string) {
+	// 为防止内存溢出，此处调用返回的第二个参数*context.CancelFunc*不能忽略
 	ctx, cancel := context.WithCancel(context.Background())
 
 	go executeSubscribe(groupName, topic, ctx, cancel)
