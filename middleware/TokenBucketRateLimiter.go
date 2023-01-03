@@ -44,10 +44,10 @@ func tryAcquire(uri string) bool {
 	}
 
 	// 计算上次访问到现在的时间间隔
-	diffrence := time.Since(time.UnixMilli(lastRefillTime)).Milliseconds()
+	difference := time.Since(time.UnixMilli(lastRefillTime)).Milliseconds()
 
 	// 如果已经超出了指定的时间，作为第一次访问处理
-	if diffrence >= setting.RateLimitSetting.Interval {
+	if difference >= setting.RateLimitSetting.Interval {
 		remainToken := setting.RateLimitSetting.Qps - 1
 		setting.RedisClient.HSet(key, constants.LAST_REFILL_TIME, time.Now().UnixMilli())
 		setting.RedisClient.HSet(key, constants.REMAIN_TOKEN, remainToken)
@@ -60,7 +60,7 @@ func tryAcquire(uri string) bool {
 		remainToken = setting.RateLimitSetting.Qps
 	}
 
-	remainToken = (int(diffrence/setting.RateLimitSetting.Interval) / setting.RateLimitSetting.Qps) + remainToken
+	remainToken = int(float64(difference)/float64(setting.RateLimitSetting.Interval)*float64(setting.RateLimitSetting.Qps)) + remainToken
 
 	isAcquire = remainToken > 0
 
@@ -68,6 +68,9 @@ func tryAcquire(uri string) bool {
 		remainToken = remainToken - 1
 	} else {
 		remainToken = 0
+	}
+	if remainToken >= setting.RateLimitSetting.Qps {
+		remainToken = setting.RateLimitSetting.Qps - 1
 	}
 	setting.RedisClient.HSet(key, constants.LAST_REFILL_TIME, time.Now().UnixMilli())
 	setting.RedisClient.HSet(key, constants.REMAIN_TOKEN, remainToken)
